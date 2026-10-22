@@ -1,0 +1,35 @@
+ARG JAVA_REL="25"
+
+FROM amazoncorretto:${JAVA_REL}-alpine
+
+RUN apk --no-cache add curl
+
+ARG MC_VER
+ARG FL_VER="0.19.5"
+ARG FI_VER="1.1.2"
+
+WORKDIR /data/minecraft
+
+RUN echo eula=true > eula.txt
+RUN curl -o fabric-server-launch.jar https://meta.fabricmc.net/v2/versions/loader/${MC_VER}/${FL_VER}/${FI_VER}/server/jar
+
+RUN curl --follow -o getmodfrommodrinth.jar https://github.com/davepusey/getmodfrommodrinth/releases/download/1.0.0/getmodfrommodrinth.jar
+RUN java -jar getmodfrommodrinth.jar ${MC_VER} fabric-api lithium no-chat-reports disconnect-packet-fix logtellrawcommand
+
+RUN chown -R nobody:nobody .
+USER nobody
+
+EXPOSE 25565/tcp
+
+LABEL org.opencontainers.image.title="Minecraft Server Image"
+LABEL org.opencontainers.image.authors="Dave Pusey"
+LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.source=https://github.com/davepusey/MinecraftServerImage
+
+LABEL java.release=${JAVA_REL}
+LABEL java.version=${JAVA_VER}
+LABEL minecraft.version=${MC_VER}
+LABEL fabric.loader.version=${FL_VER}
+LABEL fabric.installer.version=${FI_VER}
+
+ENTRYPOINT ["java", "-XX:+UseZGC", "-Xms4G", "-Xmx16G", "-jar", "fabric-server-launch.jar", "nogui"]

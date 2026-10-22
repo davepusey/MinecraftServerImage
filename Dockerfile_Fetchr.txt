@@ -1,0 +1,32 @@
+ARG MC_VER
+
+FROM mcserver:${MC_VER}
+
+ARG FETCHR_VER
+ARG FETCHR_SUF=""
+
+WORKDIR /data/minecraft
+
+COPY ops.json ./
+COPY server-icon.png ./
+COPY whitelist-phederation.json ./whitelist.json
+
+RUN curl --follow -o server.properties https://github.com/NeunEinser/bingo/releases/download/${FETCHR_VER}/server.properties
+
+RUN echo enforce-secure-profile=false >> server.properties
+RUN echo enforce-whitelist=true >> server.properties
+RUN echo motd=Fetchr-${FETCHR_VER} >> server.properties
+RUN echo resource-pack-id=8fa8e66c-85dc-4c91-b926-6ecdd12d66da >> server.properties
+RUN echo resource-pack-prompt={\"text\"\\:\"Fetchr ${FETCHR_VER} Resource Pack\"} >> server.properties
+RUN echo spawn-protection=0 >> server.properties
+RUN echo view-distance=32 >> server.properties
+RUN echo white-list=true >> server.properties
+
+RUN curl --follow -o Fetchr.zip https://github.com/NeunEinser/bingo/releases/download/${FETCHR_VER}/Fetchr-${FETCHR_VER}${FETCHR_SUF}.zip
+
+RUN unzip Fetchr.zip
+RUN rm Fetchr.zip
+
+RUN if [[ ! -d Fetchr-${FETCHR_VER} ]]; then mv Fetchr-${FETCHR_VER}${FETCHR_SUF} Fetchr-${FETCHR_VER}; else true; fi
+
+LABEL Fetchr.version=${FETCHR_VER}${FETCHR_SUF}
